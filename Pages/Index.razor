@@ -4,4 +4,55 @@
 
 Welcome to your new app.
 
-<SurveyPrompt Title="How is Blazor working for you?" />
+<Accordion>
+    <Collapse Visible="@collapse1Visible">
+        <CollapseHeader Class="bg-primary d-flex" @onclick="@(()=>collapse1Visible = !collapse1Visible)">
+            <Heading Size="HeadingSize.Is5" Class="mr-auto text-white" Margin="Margin.Is0.OnY">
+                Switch 1
+            </Heading>
+            <span class="oi oi-chevron-right text-white" aria-hidden="true"></span>
+        </CollapseHeader>
+        <CollapseBody>
+            <Column ColumnSize="ColumnSize.Is4">
+                <Card Margin="Margin.Is4.OnY">
+                    <CardImage Source="/assets/images/empty/256x256.png" Alt="Placeholder image">
+                    </CardImage>
+                    <CardBody>
+                        <CardTitle Size="5">Card title</CardTitle>
+                        <CardText>
+                            Some quick example text to build on the card title and make up the bulk of the card's content.
+                        </CardText>
+                        <Button Color="Color.Primary">Button</Button>
+                    </CardBody>
+                </Card>
+            </Column>    
+        </CollapseBody>
+    </Collapse>
+    <Collapse Visible="@collapse2Visible">
+        <CollapseHeader Class="bg-primary d-flex" @onclick="@(()=>collapse2Visible = !collapse2Visible)">
+            <Heading Size="HeadingSize.Is5" Class="mr-auto text-white" Margin="Margin.Is0.OnY">
+                Switch 2
+            </Heading>
+            <span class="fa fa-angry text-white" aria-hidden="true"></span>
+            @*<span class="fa fa-arrow-right text-white" aria-hidden="true"></span>*@
+        </CollapseHeader>
+        <CollapseBody>
+            <Column ColumnSize="ColumnSize.Is4">
+                <Card Margin="Margin.Is4.FromBottom" Background="Background.Dark" WhiteText="true">
+                    <CardBody>
+                        <CardTitle Size="4">Special title treatment</CardTitle>
+                        <CardText>
+                            With supporting text below as a natural lead-in to additional content.
+                        </CardText>
+                        <Button Color="Color.Primary">Button</Button>
+                    </CardBody>
+                </Card>
+            </Column>
+        </CollapseBody>
+    </Collapse>
+</Accordion>
+
+@code{
+    bool collapse1Visible = true;
+    bool collapse2Visible = false;
+}
