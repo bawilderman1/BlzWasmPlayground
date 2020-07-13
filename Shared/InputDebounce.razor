@@ -1,0 +1,71 @@
+﻿@implements IDisposable
+
+@using System.Timers
+
+@inject IJSRuntime js
+
+<input type="text" placeholder="@Placeholder" @bind="@_internalText" @oninput="@OnTextChanged" />
+
+@code {
+    [Parameter]
+    public string Text
+    {
+        get => _internalText;
+        set
+        {
+            if (_internalText == value) return;
+            //js.InvokeVoidAsync("console.log", "value", value);
+            _internalText = value;
+        }
+    }
+
+    [Parameter]
+    public EventCallback<string> TextChanged { get; set; }
+
+    [Parameter]
+    public string Placeholder { get; set; }
+
+    [Parameter]
+    public int? DebounceTime { get; set; }
+
+    protected async Task OnTextChanged(ChangeEventArgs e)
+    {
+        //await js.InvokeVoidAsync("console.log", "ChangeEvent", e);
+        debounceTimer.Stop();
+        debounceTimer.Start();
+        _internalChangeEvent = e;
+    }
+
+    private Timer debounceTimer;
+
+    private string _internalText { get; set; }
+
+    private ChangeEventArgs _internalChangeEvent { get; set; }
+
+    private int _internalDebounceTime { get; set; }
+
+    //protected override void OnInitialized()
+    //{
+    //}
+
+    protected override void OnAfterRender(bool firstRender)
+    {
+        if (firstRender)
+        {
+            _internalDebounceTime = DebounceTime ?? 300;
+            debounceTimer = new Timer(_internalDebounceTime);
+            debounceTimer.Elapsed += UpdateTextHandler;
+            debounceTimer.AutoReset = false;
+        }
+    }
+
+    private void UpdateTextHandler(object source, ElapsedEventArgs e)
+    {
+        TextChanged.InvokeAsync((string)_internalChangeEvent.Value).GetAwaiter().GetResult();
+    }
+
+    public void Dispose()
+    {
+        debounceTimer.Elapsed -= UpdateTextHandler;
+    }
+}

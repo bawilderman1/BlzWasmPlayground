@@ -1,5 +1,7 @@
 ﻿@page "/"
 
+@inject IJSRuntime js
+
 <h1>Hello, world!</h1>
 
 Welcome to your new app.
@@ -10,7 +12,7 @@ Welcome to your new app.
             <Heading Size="HeadingSize.Is5" Class="mr-auto text-white" Margin="Margin.Is0.OnY">
                 Switch 1
             </Heading>
-            <span class="oi oi-chevron-right text-white" aria-hidden="true"></span>
+            <span class="oi oi-chevron-right @(chevronRotateCss(collapse1Visible))" style="color: white !important"></span>
         </CollapseHeader>
         <CollapseBody>
             <Column ColumnSize="ColumnSize.Is4">
@@ -22,10 +24,13 @@ Welcome to your new app.
                         <CardText>
                             Some quick example text to build on the card title and make up the bulk of the card's content.
                         </CardText>
-                        <Button Color="Color.Primary">Button</Button>
+                        @*<textarea @bind-value="@testString" @bind-value:event="oninput" class="form-control my-2" rows="4" />*@
+                        <InputDebounce @bind-Text="@testString" DebounceTime="400" />
+                        <p class="my-2">@testString</p>
+                        <Button Color="Color.Primary" @onclick="@(async () => await js.InvokeVoidAsync("console.log", "testString", testString))">Button</Button>
                     </CardBody>
                 </Card>
-            </Column>    
+            </Column>
         </CollapseBody>
     </Collapse>
     <Collapse Visible="@collapse2Visible">
@@ -33,7 +38,7 @@ Welcome to your new app.
             <Heading Size="HeadingSize.Is5" Class="mr-auto text-white" Margin="Margin.Is0.OnY">
                 Switch 2
             </Heading>
-            <span class="fa fa-angry text-white" aria-hidden="true"></span>
+            <span class="fa fa-angry @(chevronRotateCss(collapse2Visible))" style="color: white !important;"></span>
             @*<span class="fa fa-arrow-right text-white" aria-hidden="true"></span>*@
         </CollapseHeader>
         <CollapseBody>
@@ -53,6 +58,91 @@ Welcome to your new app.
 </Accordion>
 
 @code{
-    bool collapse1Visible = true;
+    private string testString { get; set; }
+
+    bool collapse1Visible = false;
     bool collapse2Visible = false;
+
+    enum SomeProcessTypes
+    {
+        one,
+        two,
+        three
+    }
+
+    private SomeProcessTypes selectedSomeProcessType { get; set; } = SomeProcessTypes.one;
+
+    private string someProcesstypeStringValue;
+    private bool someIsBoolean = false;
+    private string someNotes = String.Empty;
+    private bool someSubmitIsAcive = false;
+
+    private List<object> items = new List<object>();
+    private int itemCount;
+
+    private List<object> someReviewMatches = new List<object>();
+    private int someReviewMatchesCount;
+
+    private bool DisplayOptionsVisible = false;
+    private bool ProcessOptionsVisible = false;
+
+    private FastMember.TypeAccessor itemAccessor = FastMember.TypeAccessor.Create(typeof(object));
+
+    private async void OnProcessTypeChange(SomeProcessTypes processType)
+    {
+        ClearSomeProcessFields();
+        selectedSomeProcessType = processType;
+        string enumStr = Enum.GetName(typeof(SomeProcessTypes), selectedSomeProcessType);
+        await js.InvokeVoidAsync("console.log", "Selected Type", enumStr);
+        await FindSomeMatches(items, enumStr);
+    }
+
+    private void ClearSomeProcessFields(bool resetSelectedType = false)
+    {
+        if (resetSelectedType)
+        {
+            selectedSomeProcessType = SomeProcessTypes.one;
+        }
+        someProcesstypeStringValue = string.Empty;
+        someIsBoolean = false;
+        someNotes = string.Empty;
+        someSubmitIsAcive = false;
+        someReviewMatchesCount = 0;
+    }
+
+    private async Task FindSomeMatches(IEnumerable<object> items, string reviewProperty)
+    {
+        if (someProcesstypeStringValue?.Length > 0 && (items?.Any() ?? false))
+        {
+            someReviewMatches = await Task.Run(() => items
+            .Where(r => (itemAccessor[r, reviewProperty])
+            .ToString()
+            .StartsWith(someProcesstypeStringValue, StringComparison.OrdinalIgnoreCase))
+            .ToList());
+            someReviewMatchesCount = (someReviewMatches?.Count ?? 0);
+            someSubmitIsAcive = someReviewMatchesCount > 0;
+        }
+        else
+        {
+            someReviewMatches.Clear();
+            someReviewMatchesCount = 0;
+        }
+        someSubmitIsAcive = someReviewMatchesCount > 0;
+        StateHasChanged();
+    }
+
+    //private async void OnSomeProcesstypeValueChange(Object source, ElapsedEventArgs e)
+    //{
+    //    await InvokeAsync(async () =>
+    //    {
+    //        await FindSomeMatches(items, Enum.GetName(typeof(SomeProcessTypes), selectedSomeProcessType));
+    //    });
+    //    await js.InvokeVoidAsync("console.log", source, e);
+    //}
+
+    //protected override void OnInitialized()
+    //{
+    //}
+
+    private string chevronRotateCss(bool isOpen) => isOpen ? "rotate down" : "rotate";
 }
